@@ -113,7 +113,7 @@ using namespace igraphics;
 #define VIEW_BASE NSView
 #endif
 
-@interface IGRAPHICS_VIEW : VIEW_BASE <NSTextFieldDelegate/*, WKScriptMessageHandler*/>
+@interface IGRAPHICS_VIEW : VIEW_BASE <NSTextFieldDelegate, NSGestureRecognizerDelegate>
 {
   CVDisplayLinkRef mDisplayLink;
   dispatch_source_t mDisplaySource;
@@ -176,5 +176,14 @@ using namespace igraphics;
 - (BOOL) performDragOperation: (id<NSDraggingInfo>) sender;
 //
 - (void) setMouseCursor: (ECursor) cursorType;
+
+//gestures
+- (void) attachGestureRecognizer: (EGestureType) type;
+- (BOOL) gestureRecognizer:(NSGestureRecognizer*) gestureRecognizer shouldReceiveTouch:(NSTouch*)touch;
+- (void) onClickGesture: (NSClickGestureRecognizer*) recognizer;
+- (void) onPressGesture: (NSPressGestureRecognizer*) recognizer;
+//- (void) onPanGesture: (NSPanGestureRecognizer*) recognizer;
+- (void) onMagnificationGesture: (NSMagnificationGestureRecognizer*) recognizer;
+- (void) onRotateGesture: (NSRotationGestureRecognizer*) recognizer;
 @end
 

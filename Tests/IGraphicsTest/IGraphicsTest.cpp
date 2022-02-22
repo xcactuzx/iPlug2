@@ -96,7 +96,7 @@ IGraphicsTest::IGraphicsTest(const InstanceInfo& info)
     "TextSize",
     "MPS (NanoVG MTL only)",
     "OpenGL (NanoVG GL only)",
-    "Gesture Recognizers (iOS only)",
+    "Gesture Recognizers (iOS/macOS)",
     "MultiTouch (iOS/Win/Web only)",
     "FlexBox",
     "Mask"
