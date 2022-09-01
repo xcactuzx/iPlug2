@@ -46,8 +46,131 @@ using ClapHost = clap::helpers::HostProxy<clap::helpers::MisbehaviourHandler::Ig
 *   @ingroup APIClasses */
 class IPlugCLAP : public IPlugAPIBase
                 , public IPlugProcessor
-                , public ClapPluginHelper
 {
+  class Proxy : public ClapPluginHelper
+  {
+    friend class IPlugCLAP;
+    
+    Proxy(IPlugCLAP& plug, const InstanceInfo& info)
+      : mPlug(plug)
+      , ClapPluginHelper(info.mDesc, info.mHost)
+    {}
+    
+    // clap_plugin
+    
+    bool init() noexcept override;
+    bool activate(double sampleRate, uint32_t minFrameCount, uint32_t maxFrameCount) noexcept override;
+    void deactivate() noexcept override;
+    bool startProcessing() noexcept override { return true; }
+    void stopProcessing() noexcept override {}
+    clap_process_status process(const clap_process *process) noexcept override { return mPlug.Process(process); };
+    
+    //void onMainThread() noexcept override {}
+    
+    // clap_plugin_latency
+    
+    bool implementsLatency() const noexcept override { return true; }
+    uint32_t latencyGet() const noexcept override { return mPlug.GetLatency(); }
+    
+    // clap_plugin_tail
+    
+    bool implementsTail() const noexcept override { return true; }
+    uint32_t tailGet() const noexcept override { return mPlug.GetTailSize(); }
+    
+    // clap_plugin_render
+    
+    bool implementsRender() const noexcept override { return true; }
+    bool renderHasHardRealtimeRequirement() noexcept override { return false; }
+    bool renderSetMode(clap_plugin_render_mode mode) noexcept override;
+    
+    // clap_plugin_state
+    
+    bool implementsState() const noexcept override { return true; }
+    bool stateSave(const clap_ostream *stream) noexcept override;
+    bool stateLoad(const clap_istream *stream) noexcept override;
+    
+    // clap_plugin_audio_ports
+    
+    bool implementsAudioPorts() const noexcept override;
+    uint32_t audioPortsCount(bool isInput) const noexcept override;
+    bool audioPortsInfo(uint32_t index, bool isInput, clap_audio_port_info *info) const noexcept override;
+    
+    // clap_plugin_audio_ports_config
+    
+    bool implementsAudioPortsConfig() const noexcept override;
+    uint32_t audioPortsConfigCount() const noexcept override;
+    bool audioPortsGetConfig(uint32_t index, clap_audio_ports_config *config) const noexcept override;
+    bool audioPortsSetConfig(clap_id configId) noexcept override;
+    
+    // clap_plugin_note_ports
+    
+    bool implementsNotePorts() const noexcept override { return mPlug.DoesMIDIIn() || mPlug.DoesMIDIOut(); }
+    uint32_t notePortsCount(bool is_input) const noexcept override;
+    bool notePortsInfo(uint32_t index, bool is_input, clap_note_port_info *info) const noexcept override;
+    
+    // clap_plugin_params
+    
+    bool implementsParams() const noexcept override { return true; }
+    uint32_t paramsCount() const noexcept override { return mPlug.NParams(); }
+    
+    bool paramsInfo(uint32_t paramIndex, clap_param_info *info) const noexcept override;
+    
+    bool paramsValue(clap_id paramId, double *value) noexcept override;
+    bool paramsValueToText(clap_id paramId, double value, char *display, uint32_t size) noexcept override;
+    bool paramsTextToValue(clap_id paramId, const char *display, double *value) noexcept override;
+    
+    void paramsFlush(const clap_input_events *input_parameter_changes, const clap_output_events *outputParamChanges) noexcept override;
+    bool isValidParamId(clap_id paramId) const noexcept override { return paramId < mPlug.NParams(); }
+    
+    // clap_plugin_gui
+    
+#if PLUG_HAS_UI
+    bool implementsGui() const noexcept override { return true; }
+    bool guiCreate(const char *api, bool isFloating) noexcept override { return true; }
+    void guiDestroy() noexcept override;
+    
+    bool guiSetScale(double scale) noexcept override;
+    bool guiShow() noexcept override;
+    bool guiHide() noexcept override;
+    bool guiGetSize(uint32_t *width, uint32_t *height) noexcept override;
+    
+#if PLUG_HOST_RESIZE
+    bool guiCanResize() const noexcept override { return true; }
+    bool guiAdjustSize(uint32_t *width, uint32_t *height) noexcept override;
+    bool guiSetSize(uint32_t width, uint32_t height) noexcept override;
+#endif
+    
+#ifdef OS_WIN
+    // clap_plugin_gui_win32
+    bool guiIsApiSupported(const char *api, bool isFloating) noexcept override
+    {
+      return !isFloating && !strcmp(api, CLAP_WINDOW_API_WIN32);
+    }
+    
+    bool guiSetParent(const clap_window *window) noexcept override
+    {
+      return mPlug.GUIWindowAttach(window->win32);
+    }
+#endif
+    
+#ifdef OS_MAC
+    // clap_plugin_gui_cocoa
+    bool guiIsApiSupported(const char *api, bool isFloating) noexcept override
+    {
+      return !isFloating && !strcmp(api, CLAP_WINDOW_API_COCOA);
+    }
+    bool guiSetParent(const clap_window *window) noexcept override
+    {
+      return mPlug.GUIWindowAttach(window->cocoa);
+    }
+#endif
+#endif
+    
+  private:
+    
+    IPlugCLAP& mPlug;
+  };
+  
   struct ParamToHost
   {
     enum class Type { Begin, Value, End };
@@ -85,112 +208,11 @@ public:
   bool SendMidiMsg(const IMidiMsg& msg) override;
   bool SendSysEx(const ISysEx& msg) override;
 
+  clap_process_status Process(const clap_process *process);
+  const clap_plugin* GetClapPlugin() { return mProxy.clapPlugin(); }
+  
 private:
-  
-  // clap_plugin
-  bool init() noexcept override;
-  bool activate(double sampleRate, uint32_t minFrameCount, uint32_t maxFrameCount) noexcept override;
-  void deactivate() noexcept override;
-  bool startProcessing() noexcept override { return true; }
-  void stopProcessing() noexcept override {}
-  clap_process_status process(const clap_process *process) noexcept override;
-  
-  //void onMainThread() noexcept override {}
 
-  // clap_plugin_latency
-  bool implementsLatency() const noexcept override { return true; }
-  uint32_t latencyGet() const noexcept override { return GetLatency(); }
-  
-  // clap_plugin_tail
-  bool implementsTail() const noexcept override { return true; }
-  uint32_t tailGet() const noexcept override { return GetTailSize(); }
-
-  // clap_plugin_render
-  bool implementsRender() const noexcept override { return true; }
-  bool renderHasHardRealtimeRequirement() noexcept override { return false; }
-  bool renderSetMode(clap_plugin_render_mode mode) noexcept override;
-  
-  // clap_plugin_state
-  bool implementsState() const noexcept override { return true; }
-  bool stateSave(const clap_ostream *stream) noexcept override;
-  bool stateLoad(const clap_istream *stream) noexcept override;
-  
-  /*void stateMarkDirty() const noexcept {
-     if (canUseState())
-    GetClapHost().MarkDirty();
-  }*/
-  
-  // clap_plugin_audio_ports
-  bool implementsAudioPorts() const noexcept override;
-  uint32_t audioPortsCount(bool isInput) const noexcept override;
-  bool audioPortsInfo(uint32_t index, bool isInput, clap_audio_port_info *info) const noexcept override;
-  
-  // clap_plugin_audio_ports_config
-  bool implementsAudioPortsConfig() const noexcept override;
-  uint32_t audioPortsConfigCount() const noexcept override;
-  bool audioPortsGetConfig(uint32_t index, clap_audio_ports_config *config) const noexcept override;
-  bool audioPortsSetConfig(clap_id configId) noexcept override;
-  
-  // clap_plugin_note_ports
-  bool implementsNotePorts() const noexcept override { return DoesMIDIIn() || DoesMIDIOut(); }
-  uint32_t notePortsCount(bool is_input) const noexcept override;
-  bool notePortsInfo(uint32_t index, bool is_input, clap_note_port_info *info) const noexcept override;
-  
-  // clap_plugin_params
-  bool implementsParams() const noexcept override { return true; }
-  uint32_t paramsCount() const noexcept override { return NParams(); }
-  
-  bool paramsInfo(uint32_t paramIndex, clap_param_info *info) const noexcept override;
-  
-  bool paramsValue(clap_id paramId, double *value) noexcept override;
-  bool paramsValueToText(clap_id paramId, double value, char *display, uint32_t size) noexcept override;
-  bool paramsTextToValue(clap_id paramId, const char *display, double *value) noexcept override;
-     
-  void paramsFlush(const clap_input_events *input_parameter_changes, const clap_output_events *outputParamChanges) noexcept override;
-  bool isValidParamId(clap_id paramId) const noexcept override { return paramId < NParams(); }
-    
-  // clap_plugin_gui
-#if PLUG_HAS_UI
-  bool implementsGui() const noexcept override { return true; }
-  bool guiCreate(const char *api, bool isFloating) noexcept override { return true; }
-  void guiDestroy() noexcept override;
-  
-  bool guiSetScale(double scale) noexcept override;
-  bool guiShow() noexcept override;
-  bool guiHide() noexcept override;
-  bool guiGetSize(uint32_t *width, uint32_t *height) noexcept override;
-  
-#if PLUG_HOST_RESIZE
-  bool guiCanResize() const noexcept override { return true; }
-  bool guiAdjustSize(uint32_t *width, uint32_t *height) noexcept override;
-  bool guiSetSize(uint32_t width, uint32_t height) noexcept override;
-#endif
-  
-#ifdef OS_WIN
-  // clap_plugin_gui_win32
-  bool guiIsApiSupported(const char *api, bool isFloating) noexcept override
-  {
-    return !isFloating && !strcmp(api, CLAP_WINDOW_API_WIN32);
-  }
-  
-  bool guiSetParent(const clap_window *window) noexcept override
-  {
-    return GUIWindowAttach(window->win32);
-  }
-#endif
-  
-#ifdef OS_MAC
-  // clap_plugin_gui_cocoa
-  bool guiIsApiSupported(const char *api, bool isFloating) noexcept override
-  {
-    return !isFloating && !strcmp(api, CLAP_WINDOW_API_COCOA);
-  }
-  bool guiSetParent(const clap_window *window) noexcept override
-  {
-    return GUIWindowAttach(window->cocoa);
-  }
-#endif
-  
   // Helper to attach GUI Windows
   
   bool GUIWindowAttach(void *parent) noexcept;
@@ -200,20 +222,23 @@ private:
   void ProcessInputEvents(const clap_input_events *inputEvents) noexcept;
   void ProcessOutputParams(const clap_output_events *outputParamChanges) noexcept;
   void ProcessOutputEvents(const clap_output_events *outputEvents, int nFrames) noexcept;
-
-  void *mWindow = nullptr;
-  bool mGUIOpen = false;
-#endif
   
   // IPlug2-style host retrieval
   
-  ClapHost GetClapHost() { return _host; }
+  ClapHost GetClapHost() { return mProxy._host; }
   
   // IPlug Config Helpers
   
   int RequiredChannels() const;
   uint32_t NBuses(ERoute direction) const;
   uint32_t NChannels(ERoute direction, uint32_t bus) const;
+
+  Proxy mProxy;
+  
+#if PLUG_HAS_UI
+  void *mWindow = nullptr;
+  bool mGUIOpen = false;
+#endif
   
   IPlugQueue<ParamToHost> mParamValuesToHost {PARAM_TRANSFER_SIZE};
   IPlugQueue<SysExData> mSysExToHost {SYSEX_TRANSFER_SIZE};

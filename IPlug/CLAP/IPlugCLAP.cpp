@@ -27,7 +27,7 @@ void ClapNameCopy(char *destination, const char *source)
 IPlugCLAP::IPlugCLAP(const InstanceInfo& info, const Config& config)
   : IPlugAPIBase(config, kAPICLAP)
   , IPlugProcessor(config, kAPICLAP)
-  , ClapPluginHelper(info.mDesc, info.mHost)
+  , mProxy(*this, info)
 {
   Trace(TRACELOC, "%s", config.pluginName);
   
@@ -117,29 +117,28 @@ bool IPlugCLAP::SendSysEx(const ISysEx& msg)
   mSysExToHost.Push(SysExData{ msg.mOffset, msg.mSize, msg.mData } );
   return true;
 }
-}
 
 // clap_plugin
 
-bool IPlugCLAP::init() noexcept
+bool IPlugCLAP::Proxy::init() noexcept
 {
   return true;
 }
 
-bool IPlugCLAP::activate(double sampleRate, uint32_t minFrameCount, uint32_t maxFrameCount) noexcept
+bool IPlugCLAP::Proxy::activate(double sampleRate, uint32_t minFrameCount, uint32_t maxFrameCount) noexcept
 {
-  SetBlockSize(maxFrameCount);
-  SetSampleRate(sampleRate);
-  OnActivate(true);
-  OnParamReset(kReset);
-  OnReset();
+  mPlug.SetBlockSize(maxFrameCount);
+  mPlug.SetSampleRate(sampleRate);
+  mPlug.OnActivate(true);
+  mPlug.OnParamReset(kReset);
+  mPlug.OnReset();
 
   return true;
 }
 
-void IPlugCLAP::deactivate() noexcept
+void IPlugCLAP::Proxy::deactivate() noexcept
 {
-  OnActivate(false);
+  mPlug.OnActivate(false);
   
   // TODO - should we clear mTailChanged here or elsewhere?
 }
@@ -150,7 +149,7 @@ const T* ClapEventCast(const clap_event_header_t *event)
   return reinterpret_cast<const T*>(event);
 }
 
-clap_process_status IPlugCLAP::process(const clap_process *process) noexcept
+clap_process_status IPlugCLAP::Process(const clap_process *process)
 {
   IMidiMsg msg;
   SysExData sysEx;
@@ -332,25 +331,25 @@ clap_process_status IPlugCLAP::process(const clap_process *process) noexcept
 
 // clap_plugin_render
 
-bool IPlugCLAP::renderSetMode(clap_plugin_render_mode mode) noexcept
+bool IPlugCLAP::Proxy::renderSetMode(clap_plugin_render_mode mode) noexcept
 {
-  SetRenderingOffline(mode == CLAP_RENDER_OFFLINE);
+  mPlug.SetRenderingOffline(mode == CLAP_RENDER_OFFLINE);
   return true;
 }
 
 // clap_plugin_state
 
-bool IPlugCLAP::stateSave(const clap_ostream *stream) noexcept
+bool IPlugCLAP::Proxy::stateSave(const clap_ostream *stream) noexcept
 {
   IByteChunk chunk;
   
-  if (!SerializeState(chunk))
+  if (!mPlug.SerializeState(chunk))
     return false;
   
   return stream->write(stream, chunk.GetData(), chunk.Size()) == chunk.Size();
 }
 
-bool IPlugCLAP::stateLoad(const clap_istream *stream) noexcept
+bool IPlugCLAP::Proxy::stateLoad(const clap_istream *stream) noexcept
 {
   constexpr int bytesPerBlock = 256;
   char buffer[bytesPerBlock];
@@ -364,22 +363,22 @@ bool IPlugCLAP::stateLoad(const clap_istream *stream) noexcept
   if (bytesRead != 0)
     return false;
       
-  bool restoredOK = UnserializeState(chunk, 0) >= 0;
+  bool restoredOK = mPlug.UnserializeState(chunk, 0) >= 0;
   
   if (restoredOK)
-    OnRestoreState();
+    mPlug.OnRestoreState();
   
   return restoredOK;
 }
 
 // clap_plugin_params
 
-bool IPlugCLAP::paramsInfo(uint32_t paramIndex, clap_param_info *info) const noexcept
+bool IPlugCLAP::Proxy::paramsInfo(uint32_t paramIndex, clap_param_info *info) const noexcept
 {
   assert(MAX_PARAM_NAME_LEN <= CLAP_NAME_SIZE && "iPlug parameter name size exceeds CLAP maximum");
   assert(MAX_PARAM_GROUP_LEN <= CLAP_PATH_SIZE && "iPlug group name size exceeds CLAP maximum");
 
-  const IParam *pParam = GetParam(paramIndex);
+  const IParam *pParam = mPlug.GetParam(paramIndex);
   
   clap_param_info_flags flags = CLAP_PARAM_REQUIRES_PROCESS; // TO DO - check this with Alex B
   
@@ -404,16 +403,16 @@ bool IPlugCLAP::paramsInfo(uint32_t paramIndex, clap_param_info *info) const noe
   return true;
 }
 
-bool IPlugCLAP::paramsValue(clap_id paramId, double *value) noexcept
+bool IPlugCLAP::Proxy::paramsValue(clap_id paramId, double *value) noexcept
 {
-  const IParam *pParam = GetParam(paramId);
+  const IParam *pParam = mPlug.GetParam(paramId);
   *value = pParam->Value();
   return true;
 }
 
-bool IPlugCLAP::paramsValueToText(clap_id paramId, double value, char *display, uint32_t size) noexcept
+bool IPlugCLAP::Proxy::paramsValueToText(clap_id paramId, double value, char *display, uint32_t size) noexcept
 {
-  const IParam *pParam = GetParam(paramId);
+  const IParam *pParam = mPlug.GetParam(paramId);
   WDL_String str;
   
   pParam->GetDisplay(value, false, str);
@@ -433,17 +432,17 @@ bool IPlugCLAP::paramsValueToText(clap_id paramId, double value, char *display, 
   return true;
 }
 
-bool IPlugCLAP::paramsTextToValue(clap_id paramId, const char *display, double *value) noexcept
+bool IPlugCLAP::Proxy::paramsTextToValue(clap_id paramId, const char *display, double *value) noexcept
 {
-  const IParam *pParam = GetParam(paramId);
+  const IParam *pParam = mPlug.GetParam(paramId);
   *value = pParam->StringToValue(display);
   return true;
 }
 
-void IPlugCLAP::paramsFlush(const clap_input_events *input_parameter_changes, const clap_output_events *output_parameter_changes) noexcept
+void IPlugCLAP::Proxy::paramsFlush(const clap_input_events *input_parameter_changes, const clap_output_events *output_parameter_changes) noexcept
 {
-  ProcessInputEvents(input_parameter_changes);
-  ProcessOutputParams(output_parameter_changes);
+  mPlug.ProcessInputEvents(input_parameter_changes);
+  mPlug.ProcessOutputParams(output_parameter_changes);
 }
 
 void IPlugCLAP::ProcessInputEvents(const clap_input_events *inputEvents) noexcept
@@ -635,27 +634,27 @@ const char *ClapPortType(uint32_t nChans)
   return nChans == 2 ? CLAP_PORT_STEREO : (nChans == 1 ? CLAP_PORT_MONO : nullptr);
 }
 
-bool IPlugCLAP::implementsAudioPorts() const noexcept
+bool IPlugCLAP::Proxy::implementsAudioPorts() const noexcept
 {
-  return MaxNBuses(ERoute::kInput) || MaxNBuses(ERoute::kOutput);
+  return mPlug.MaxNBuses(ERoute::kInput) || mPlug.MaxNBuses(ERoute::kOutput);
 }
 
-uint32_t IPlugCLAP::audioPortsCount(bool isInput) const noexcept
+uint32_t IPlugCLAP::Proxy::audioPortsCount(bool isInput) const noexcept
 {
-  return NBuses(isInput ? ERoute::kInput : ERoute::kOutput);
+  return mPlug.NBuses(isInput ? ERoute::kInput : ERoute::kOutput);
 }
 
-bool IPlugCLAP::audioPortsInfo(uint32_t index, bool isInput, clap_audio_port_info *info) const noexcept
+bool IPlugCLAP::Proxy::audioPortsInfo(uint32_t index, bool isInput, clap_audio_port_info *info) const noexcept
 {
   // TODO - both sets of ids below (should we use in place pairs)
   
   WDL_String busName;
 
   const auto direction = isInput ? ERoute::kInput : ERoute::kOutput;
-  const auto nBuses = NBuses(direction);
-  const auto nChans = NChannels(direction, index);
+  const auto nBuses = mPlug.NBuses(direction);
+  const auto nChans = mPlug.NChannels(direction, index);
 
-  GetBusName(direction, index, nBuses, busName);
+  mPlug.GetBusName(direction, index, nBuses, busName);
   
   constexpr uint32_t bitFlags = CLAP_AUDIO_PORT_SUPPORTS_64BITS
                               | CLAP_AUDIO_PORT_PREFERS_64BITS
@@ -670,19 +669,19 @@ bool IPlugCLAP::audioPortsInfo(uint32_t index, bool isInput, clap_audio_port_inf
   return true;
 }
 
-bool IPlugCLAP::implementsAudioPortsConfig() const noexcept
+bool IPlugCLAP::Proxy::implementsAudioPortsConfig() const noexcept
 {
   return audioPortsConfigCount();
 }
 
-uint32_t IPlugCLAP::audioPortsConfigCount() const noexcept
+uint32_t IPlugCLAP::Proxy::audioPortsConfigCount() const noexcept
 {
-  return static_cast<uint32_t>(NIOConfigs());
+  return static_cast<uint32_t>(mPlug.NIOConfigs());
 }
 
-bool IPlugCLAP::audioPortsGetConfig(uint32_t index, clap_audio_ports_config *config) const noexcept
+bool IPlugCLAP::Proxy::audioPortsGetConfig(uint32_t index, clap_audio_ports_config *config) const noexcept
 {
-  const IOConfig* ioConfig = GetIOConfig(index);
+  const IOConfig* ioConfig = mPlug.GetIOConfig(index);
 
   WDL_String configName;
 
@@ -726,17 +725,17 @@ bool IPlugCLAP::audioPortsGetConfig(uint32_t index, clap_audio_ports_config *con
   return true;
 }
 
-bool IPlugCLAP::audioPortsSetConfig(clap_id configId) noexcept
+bool IPlugCLAP::Proxy::audioPortsSetConfig(clap_id configId) noexcept
 {
   if (configId >= audioPortsConfigCount())
     return false;
   
-  mConfigIdx = static_cast<int>(configId);
+  mPlug.mConfigIdx = static_cast<int>(configId);
   
   return true;
 }
 
-uint32_t IPlugCLAP::notePortsCount(bool is_input) const noexcept
+uint32_t IPlugCLAP::Proxy::notePortsCount(bool is_input) const noexcept
 {
   if (is_input)
     return PLUG_DOES_MIDI_IN ? 1 : 0;
@@ -744,7 +743,7 @@ uint32_t IPlugCLAP::notePortsCount(bool is_input) const noexcept
     return PLUG_DOES_MIDI_OUT ? 1 : 0;
 }
 
-bool IPlugCLAP::notePortsInfo(uint32_t index, bool is_input, clap_note_port_info *info) const noexcept
+bool IPlugCLAP::Proxy::notePortsInfo(uint32_t index, bool is_input, clap_note_port_info *info) const noexcept
 {
   if (is_input)
   {
@@ -767,43 +766,43 @@ bool IPlugCLAP::notePortsInfo(uint32_t index, bool is_input, clap_note_port_info
 
 // clap_plugin_gui
 
-void IPlugCLAP::guiDestroy() noexcept
+void IPlugCLAP::Proxy::guiDestroy() noexcept
 {
-  CloseWindow();
-  mGUIOpen = false;
+  mPlug.CloseWindow();
+  mPlug.mGUIOpen = false;
 }
 
-bool IPlugCLAP::guiShow() noexcept
+bool IPlugCLAP::Proxy::guiShow() noexcept
 {
-  if (!mGUIOpen)
+  if (!mPlug.mGUIOpen)
   {
-    OpenWindow(mWindow);
+    mPlug.OpenWindow(mPlug.mWindow);
     return true;
   }
   
   return false;
 }
 
-bool IPlugCLAP::guiHide() noexcept
+bool IPlugCLAP::Proxy::guiHide() noexcept
 {
   guiDestroy();
   return true;
 }
 
-bool IPlugCLAP::guiSetScale(double scale) noexcept
+bool IPlugCLAP::Proxy::guiSetScale(double scale) noexcept
 {
-  SetScreenScale(static_cast<float>(scale));
+  mPlug.SetScreenScale(static_cast<float>(scale));
   return true;
 }
 
-bool IPlugCLAP::guiGetSize(uint32_t* width, uint32_t* height) noexcept
+bool IPlugCLAP::Proxy::guiGetSize(uint32_t* width, uint32_t* height) noexcept
 {
   TRACE
   
-  if (HasUI())
+  if (mPlug.HasUI())
   {
-    *width = GetEditorWidth();
-    *height = GetEditorHeight();
+    *width = mPlug.GetEditorWidth();
+    *height = mPlug.GetEditorHeight();
     
     return true;
   }
@@ -822,15 +821,15 @@ bool IPlugCLAP::GUIWindowAttach(void *window) noexcept
 }
 
 #if PLUG_HOST_RESIZE
-bool IPlugCLAP::guiAdjustSize(uint32_t* width, uint32_t* height) noexcept
+bool IPlugCLAP::Proxy::guiAdjustSize(uint32_t* width, uint32_t* height) noexcept
 {
   Trace(TRACELOC, "width:%i height:%i\n", *width, *height);
   
-  if (HasUI())
+  if (mPlug.HasUI())
   {
     int w = *width;
     int h = *height;
-    ConstrainEditorResize(w, h);
+    mPlug.ConstrainEditorResize(w, h);
     *width = w;
     *height = h;
     
@@ -840,11 +839,11 @@ bool IPlugCLAP::guiAdjustSize(uint32_t* width, uint32_t* height) noexcept
   return false;
 }
 
-bool IPlugCLAP::guiSetSize(uint32_t width, uint32_t height) noexcept
+bool IPlugCLAP::Proxy::guiSetSize(uint32_t width, uint32_t height) noexcept
 {
   Trace(TRACELOC, "width:%i height:%i\n", width, height);
 
-  OnParentWindowResize(width, height);
+  mPlug.OnParentWindowResize(width, height);
   
   return true;
 }
