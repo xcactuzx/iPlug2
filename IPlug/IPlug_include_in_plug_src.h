@@ -350,7 +350,7 @@ static const clap_plugin* clap_create_plugin(const clap_plugin_factory_t *factor
   if (!strcmp(gPluginDesc->id, plugin_id))
   {
     IPlugCLAP* pPlug = MakePlug(InstanceInfo{gPluginDesc, host});
-    return pPlug->clapPlugin();
+    return pPlug->GetClapPlugin();
   }
   
   return nullptr;
