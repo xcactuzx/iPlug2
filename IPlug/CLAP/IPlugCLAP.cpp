@@ -53,8 +53,7 @@ IPlugCLAP::IPlugCLAP(const InstanceInfo& info, const Config& config)
 
 void IPlugCLAP::BeginInformHostOfParamChange(int idx)
 {
-  ParamToHost change { ParamToHost::Type::Begin, idx, 0.0 };
-  mParamValuesToHost.Push(change);
+  mParamValuesToHost.PushFromArgs(ParamToHost::Type::Begin, idx, 0.0);
 }
 
 void IPlugCLAP::InformHostOfParamChange(int idx, double normalizedValue)
@@ -63,14 +62,12 @@ void IPlugCLAP::InformHostOfParamChange(int idx, double normalizedValue)
   const bool isDoubleType = pParam->Type() == IParam::kTypeDouble;
   const double value = isDoubleType ? normalizedValue : pParam->FromNormalized(normalizedValue);
   
-  ParamToHost change { ParamToHost::Type::Value, idx, value };
-  mParamValuesToHost.Push(change);
+  mParamValuesToHost.PushFromArgs(ParamToHost::Type::Value, idx, value);
 }
 
 void IPlugCLAP::EndInformHostOfParamChange(int idx)
 {
-  ParamToHost change { ParamToHost::Type::End, idx, 0.0 };
-  mParamValuesToHost.Push(change);
+  mParamValuesToHost.PushFromArgs(ParamToHost::Type::End, idx, 0.0);
 }
 
 //
