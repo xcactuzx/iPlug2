@@ -574,7 +574,7 @@ void IPlugCLAP::ProcessOutputEvents(const clap_output_events *outputEvents, int 
 {
   // TODO - ordering of events!!!
   // N.B. Midi events are ordered by the queue
-  // We should not output anything beyond the current frame...
+  // However, sysex messsages are not restricted in this way (is there a good solution?)
   
   SysExData data;
   
@@ -588,6 +588,11 @@ void IPlugCLAP::ProcessOutputEvents(const clap_output_events *outputEvents, int 
     {
       auto msg = mMidiToHost.Peek();
       auto status = msg.mStatus;
+      
+      // Don't move beyond the current frame
+      
+      if (msg.mOffset > nFrames)
+        break;
       
       // Construct output stream
       
