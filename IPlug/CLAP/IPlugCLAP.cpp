@@ -446,10 +446,10 @@ bool IPlugCLAP::Proxy::paramsTextToValue(clap_id paramIdx, const char *display, 
   return true;
 }
 
-void IPlugCLAP::Proxy::paramsFlush(const clap_input_events *input_parameter_changes, const clap_output_events *output_parameter_changes) noexcept
+void IPlugCLAP::Proxy::paramsFlush(const clap_input_events *inputParamChanges, const clap_output_events *outputParamChanges) noexcept
 {
-  mPlug.ProcessInputEvents(input_parameter_changes);
-  mPlug.ProcessOutputParams(output_parameter_changes);
+  mPlug.ProcessInputEvents(inputParamChanges);
+  mPlug.ProcessOutputParams(outputParamChanges);
 }
 
 void IPlugCLAP::ProcessInputEvents(const clap_input_events *inputEvents) noexcept
@@ -739,27 +739,27 @@ bool IPlugCLAP::Proxy::audioPortsGetConfig(uint32_t index, clap_audio_ports_conf
   return true;
 }
 
-bool IPlugCLAP::Proxy::audioPortsSetConfig(clap_id configId) noexcept
+bool IPlugCLAP::Proxy::audioPortsSetConfig(clap_id configIdx) noexcept
 {
-  if (configId >= audioPortsConfigCount())
+  if (configIdx >= audioPortsConfigCount())
     return false;
   
-  mPlug.mConfigIdx = static_cast<int>(configId);
+  mPlug.mConfigIdx = static_cast<int>(configIdx);
   
   return true;
 }
 
-uint32_t IPlugCLAP::Proxy::notePortsCount(bool is_input) const noexcept
+uint32_t IPlugCLAP::Proxy::notePortsCount(bool isInput) const noexcept
 {
-  if (is_input)
+  if (isInput)
     return PLUG_DOES_MIDI_IN ? 1 : 0;
   else
     return PLUG_DOES_MIDI_OUT ? 1 : 0;
 }
 
-bool IPlugCLAP::Proxy::notePortsInfo(uint32_t index, bool is_input, clap_note_port_info *info) const noexcept
+bool IPlugCLAP::Proxy::notePortsInfo(uint32_t index, bool isInput, clap_note_port_info *info) const noexcept
 {
-  if (is_input)
+  if (isInput)
   {
     info->id = index;
     info->supported_dialects = CLAP_NOTE_DIALECT_MIDI;
