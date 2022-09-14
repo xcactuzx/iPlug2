@@ -37,6 +37,8 @@
 BEGIN_IPLUG_NAMESPACE
 BEGIN_IGRAPHICS_NAMESPACE
 
+class IContainerBase;
+
 /** The lowest level base class of an IGraphics control. A control is anything on the GUI 
 *  @ingroup BaseControls */
 class IControl
@@ -448,6 +450,11 @@ public:
     OnRescale();
   }
   
+  /** @return A pointer to the parent container, if the control is a sub control */
+  IContainerBase* GetParent() const { return mParent; }
+  
+  void SetParent(IContainerBase* pParent) { mParent = pParent; }
+  
   /** @return A pointer to the IGraphics context that owns this control */ 
   IGraphics* GetUI() { return mGraphics; }
     
@@ -520,7 +527,7 @@ protected:
         func(v, args...);
     }
   }
-    
+  
   IRECT mRECT;
   IRECT mTargetRECT;
   
@@ -563,6 +570,7 @@ protected:
 #endif
   
 private:
+  IContainerBase* mParent = nullptr;
   IGEditorDelegate* mDelegate = nullptr;
   IGraphics* mGraphics = nullptr;
   IActionFunction mActionFunc = nullptr;
@@ -581,6 +589,110 @@ private:
  * \addtogroup BaseControls
  * @{
  */
+
+/** IContainerBase allows a control to nest sub controls.
+ * Inheritors can add child controls by overriding OnAttached() and calling AddChildControl().
+ * Child controls should not have been added elsewhere
+ * OnResized() should also be overriden if the control bounds will change */
+class IContainerBase : public IControl
+{
+public:
+  using AttachFunc = std::function<void(IContainerBase* pContainer, const IRECT& bounds)>;
+  using ResizeFunc = std::function<void(IContainerBase* pContainer, const IRECT& bounds)>;
+  
+  IContainerBase(const IRECT& bounds, int paramIdx = kNoParameter, IActionFunction actionFunc = nullptr)
+  : IControl(bounds, paramIdx, actionFunc)
+  {}
+  
+  IContainerBase(const IRECT& bounds, const std::initializer_list<int>& params, IActionFunction actionFunc = nullptr)
+  : IControl(bounds, params, actionFunc)
+  {}
+  
+  IContainerBase(const IRECT& bounds, IActionFunction actionFunc)
+  : IControl(bounds, actionFunc)
+  {}
+  
+  IContainerBase(const IRECT& bounds, AttachFunc attachFunc, ResizeFunc resizeFunc = nullptr)
+  : IControl(bounds)
+  , mAttachFunc(attachFunc)
+  , mResizeFunc(resizeFunc)
+  {
+    mIgnoreMouse = true;
+  }
+  
+  virtual void Draw(IGraphics& g) override
+  {
+    /* NO-OP */
+  }
+  
+  virtual ~IContainerBase()
+  {
+    mChildren.Empty(false);
+  }
+  
+  virtual void OnAttached() override
+  {
+    if (mAttachFunc)
+      mAttachFunc(this, mRECT);
+  }
+  
+  virtual void OnResize() override
+  {
+    if (mResizeFunc && mChildren.GetSize())
+      mResizeFunc(this, mRECT);
+  }
+  
+  void SetDisabled(bool disable) override
+  {
+    ForAllChildrenFunc([disable](IControl* pChild) {
+      pChild->SetDisabled(disable);
+    });
+
+    IControl::SetDisabled(disable);
+  }
+
+  void Hide(bool hide) override
+  {
+    ForAllChildrenFunc([hide](IControl* pChild) {
+      pChild->Hide(hide);
+    });
+    
+    IControl::Hide(hide);
+  }
+  
+  IControl* AddChildControl(IControl* pControl, int ctrlTag = kNoTag, const char* group = "")
+  {
+    pControl->SetParent(this);
+    return mChildren.Add(GetUI()->AttachControl(pControl, ctrlTag, group));
+  }
+  
+  void RemoveChildControl(IControl* pControl)
+  {
+    pControl->SetParent(nullptr);
+    mChildren.DeletePtr(pControl, false);
+    GetUI()->RemoveControl(pControl);
+  }
+  
+  IControl* GetChild(int idx)
+  {
+    return mChildren.Get(idx);
+  }
+  
+  int NChildren() const { return mChildren.GetSize(); }
+  
+  void ForAllChildrenFunc(std::function<void(IControl* pControl)> func)
+  {
+    for (int i=0; i<mChildren.GetSize(); i++)
+    {
+      func(mChildren.Get(i));
+    }
+  }
+  
+private:
+  AttachFunc mAttachFunc = nullptr;
+  ResizeFunc mResizeFunc = nullptr;
+  WDL_PtrList<IControl> mChildren;
+};
 
 /** A base interface to be combined with IControl for bitmap-based controls "IBControls", managing an IBitmap */
 class IBitmapBase
@@ -1716,7 +1828,7 @@ protected:
 };
 
 /** An abstract IControl base class that you can inherit from in order to make a control that pops up a menu to browse files */
-class IDirBrowseControlBase : public IControl
+class IDirBrowseControlBase : public IContainerBase
 {
 public:
   /** Creates an IDirBrowseControlBase
@@ -1724,7 +1836,7 @@ public:
    * @param extension The file extenstion to browse for, e.g excluding the dot e.g. "txt"
    * @param showFileExtension Should the menu show the file extension */
   IDirBrowseControlBase(const IRECT& bounds, const char* extension, bool showFileExtensions = true)
-  : IControl(bounds)
+  : IContainerBase(bounds)
   , mShowFileExtensions(showFileExtensions)
   {
     mExtension.Set(extension);
