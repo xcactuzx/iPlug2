@@ -1,6 +1,7 @@
 #include "IPlugEffect.h"
 #include "IPlug_include_in_plug_src.h"
 #include "IControls.h"
+#include "IVTabbedPagesControl.h"
 
 IPlugEffect::IPlugEffect(const InstanceInfo& info)
 : Plugin(info, MakeConfig(kNumParams, kNumPresets))
@@ -15,10 +16,29 @@ IPlugEffect::IPlugEffect(const InstanceInfo& info)
   mLayoutFunc = [&](IGraphics* pGraphics) {
     pGraphics->AttachCornerResizer(EUIResizerMode::Scale, false);
     pGraphics->AttachPanelBackground(COLOR_GRAY);
+    pGraphics->AttachBubbleControl();
     pGraphics->LoadFont("Roboto-Regular", ROBOTO_FN);
-    const IRECT b = pGraphics->GetBounds();
-    pGraphics->AttachControl(new ITextControl(b.GetMidVPadded(50), "Hello iPlug 2!", IText(50)));
-    pGraphics->AttachControl(new IVKnobControl(b.GetCentredInside(100).GetVShifted(-100), kGain));
+    const IRECT b = pGraphics->GetBounds().GetPadded(-10);
+    
+    auto resizeFunc = [](IContainerBase* pCaller, const IRECT& r) {
+      auto innerBounds = r.GetPadded(-10);
+      pCaller->GetChild(0)->SetTargetAndDrawRECTs(innerBounds.SubRectHorizontal(3, 0));
+    };
+    
+    pGraphics->AttachControl(new IVTabbedPagesControl(b.FracRectVertical(0.5, true),
+    {
+      {"1", new IVTabbedPageBase([](IContainerBase* pCaller, const IRECT& r) {
+                                  pCaller->AddChildControl(new IVKnobControl(IRECT(), kGain, "Knob"))
+                                  ->SetActionFunction(ShowBubbleHorizontalActionFunc);
+                                }, resizeFunc)},
+      {"2", new IVTabbedPageBase([](IContainerBase* pCaller, const IRECT& r) {
+                                  pCaller->AddChildControl(new IVSliderControl(IRECT(), kGain, "Slider"))
+                                  ->SetActionFunction(ShowBubbleHorizontalActionFunc);
+                                }, resizeFunc)},
+      {"3", new IVTabbedPageBase([](IContainerBase* pCaller, const IRECT& r) {
+                                  pCaller->AddChildControl(new IVButtonControl(IRECT(), DefaultClickActionFunc, "Button"));
+                                }, resizeFunc)}
+    }, ""));
   };
 #endif
 }
