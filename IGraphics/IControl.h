@@ -612,12 +612,22 @@ public:
   : IControl(bounds, actionFunc)
   {}
   
-  IContainerBase(const IRECT& bounds, AttachFunc attachFunc, ResizeFunc resizeFunc = nullptr)
+  IContainerBase(const IRECT& bounds, AttachFunc attachFunc, ResizeFunc resizeFunc)
   : IControl(bounds)
   , mAttachFunc(attachFunc)
   , mResizeFunc(resizeFunc)
   {
     mIgnoreMouse = true;
+  }
+  
+  void SetAttachFunc(AttachFunc attachFunc)
+  {
+    mAttachFunc = attachFunc;
+  }
+  
+  void SetResizeFunc(ResizeFunc resizeFunc)
+  {
+    mResizeFunc = resizeFunc;
   }
   
   virtual void Draw(IGraphics& g) override
@@ -644,7 +654,7 @@ public:
   
   void SetDisabled(bool disable) override
   {
-    ForAllChildrenFunc([disable](IControl* pChild) {
+    ForAllChildrenFunc([disable](int childIdx, IControl* pChild) {
       pChild->SetDisabled(disable);
     });
 
@@ -653,7 +663,7 @@ public:
 
   void Hide(bool hide) override
   {
-    ForAllChildrenFunc([hide](IControl* pChild) {
+    ForAllChildrenFunc([hide](int childIdx, IControl* pChild) {
       pChild->Hide(hide);
     });
     
@@ -680,15 +690,15 @@ public:
   
   int NChildren() const { return mChildren.GetSize(); }
   
-  void ForAllChildrenFunc(std::function<void(IControl* pControl)> func)
+  void ForAllChildrenFunc(std::function<void(int childIdx, IControl* pControl)> func)
   {
     for (int i=0; i<mChildren.GetSize(); i++)
     {
-      func(mChildren.Get(i));
+      func(i, mChildren.Get(i));
     }
   }
   
-private:
+protected:
   AttachFunc mAttachFunc = nullptr;
   ResizeFunc mResizeFunc = nullptr;
   WDL_PtrList<IControl> mChildren;
