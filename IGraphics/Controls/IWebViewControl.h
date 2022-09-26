@@ -66,6 +66,14 @@ public:
     GetUI()->AttachPlatformView(mRECT, mPlatformView);
   }
   
+  void Hide(bool hide) override
+  {
+    if (mPlatformView)
+    {
+      GetUI()->HidePlatformView(mPlatformView, hide);
+    }
+  }
+  
   void Draw(IGraphics& g) override
   {
      /* NO-OP */
