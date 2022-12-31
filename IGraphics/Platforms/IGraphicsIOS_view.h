@@ -13,6 +13,7 @@
 
 #if defined IGRAPHICS_GL
   #include "MGLLayer.h"
+  #import "MGLContext.h"
 #endif
 
 BEGIN_IPLUG_NAMESPACE

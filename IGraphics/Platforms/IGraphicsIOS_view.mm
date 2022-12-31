@@ -15,10 +15,6 @@
 #import <QuartzCore/QuartzCore.h>
 #import <Metal/Metal.h>
 
-#if defined IGRAPHICS_GL
-#import "MGLContext.h"
-#endif
-
 #import "IGraphicsIOS_view.h"
 
 #include "IGraphicsCoreText.h"
