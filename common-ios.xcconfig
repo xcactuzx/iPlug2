@@ -73,6 +73,7 @@ STB_PATH = $(DEPS_PATH)/IGraphics/STB
 YOGA_PATH = $(DEPS_PATH)/IGraphics/yoga
 
 SKIA_PATH = $(DEPS_PATH)/Build/src/skia
+ANGLE_PATH = $(DEPS_PATH)/Build/src/angle
 
 SKIA_INC_PATHS = $(SKIA_PATH) $(SKIA_PATH)/include/core $(SKIA_PATH)/include/effects $(SKIA_PATH)/include/config $(SKIA_PATH)/include/utils $(SKIA_PATH)/include/utils/mac $(SKIA_PATH)/include/gpu $(SKIA_PATH)/third_party/externals/icu/source/common $(SKIA_PATH)/modules/svg/include
 
