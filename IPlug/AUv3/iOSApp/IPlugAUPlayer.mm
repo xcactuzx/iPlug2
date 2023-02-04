@@ -57,11 +57,11 @@
   AVAudioSession* session = [AVAudioSession sharedInstance];
   
 #if PLUG_TYPE == 1
-  [session setCategory: AVAudioSessionCategoryPlayback error:&error];
+  [session setCategory: AVAudioSessionCategoryPlayback error:nil];
 #else
-  [session setCategory: AVAudioSessionCategoryPlayAndRecord error:&error];
+  [session setCategory: AVAudioSessionCategoryPlayAndRecord error:nil];
 #endif
-  
+  [session setAllowHapticsAndSystemSoundsDuringRecording: YES error:nil];
   [session setPreferredSampleRate:iplug::DEFAULT_SAMPLE_RATE error:nil];
   [session setPreferredIOBufferDuration:128.0/iplug::DEFAULT_SAMPLE_RATE error:nil];
   AVAudioMixerNode* mainMixer = [audioEngine mainMixerNode];
