@@ -927,7 +927,7 @@ void ISliderControlBase::OnMouseDrag(float x, float y, float dX, float dY, const
 {
   const IParam* pParam = GetParam();
 
-  if(mod.touchID || !mHideCursorOnDrag)
+  if (mod.touchID || !mHideCursorOnDrag)
   {
     if(pParam)
     {
@@ -957,7 +957,15 @@ void ISliderControlBase::OnMouseDrag(float x, float y, float dX, float dY, const
   double v = mMouseDragValue;
   
   if (pParam && pParam->GetStepped() && pParam->GetStep() > 0)
+  {
     v = pParam->ConstrainNormalized(mMouseDragValue);
+    
+    if (v != mLastConstrainedValue)
+    {
+      GetUI()->TriggerHapticFeedback();
+      mLastConstrainedValue = v;
+    }
+  }
 
   SetValue(v);
   SetDirty(true);
