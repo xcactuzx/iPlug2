@@ -773,6 +773,8 @@ void ISwitchControlBase::OnMouseDown(float x, float y, const IMouseMod& mod)
     SetValue(val);
   }
   
+  GetUI()->TriggerHapticFeedback();
+  
   mMouseDown = true;
   SetDirty(true);
 }
