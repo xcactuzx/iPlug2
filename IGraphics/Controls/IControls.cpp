@@ -555,7 +555,7 @@ void IVKnobControl::DrawWidget(IGraphics& g)
 {
   float widgetRadius; // The radius out to the indicator track arc
   
-  if(mWidgetBounds.W() > mWidgetBounds.H())
+  if (mWidgetBounds.W() > mWidgetBounds.H())
     widgetRadius = (mWidgetBounds.H()/2.f);
   else
     widgetRadius = (mWidgetBounds.W()/2.f);
