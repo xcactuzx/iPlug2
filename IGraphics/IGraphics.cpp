@@ -2856,4 +2856,23 @@ void IGraphics::DoDrawSVG(const ISVG& svg, const IBlend* pBlend)
     }
   }
 #endif
-  }
+}
+
+IScopedLayer::IScopedLayer(IControl* pOwner, const IRECT& rect, IScopedLayerDrawFunction drawFunc, const IShadow& shadow)
+: mDrawFunc(drawFunc)
+, mPOwner(pOwner)
+, mRECT(rect)
+, mShadow(shadow)
+{
+  mPOwner->GetUI()->StartLayer(pOwner, rect);
+}
+
+IScopedLayer::~IScopedLayer()
+{
+  IGraphics& g = *mPOwner->GetUI();
+  mDrawFunc(g, mRECT);
+  auto pLayer = g.EndLayer();
+  g.ApplyLayerDropShadow(pLayer, mShadow);
+  g.DrawLayer(pLayer);
+}
+
