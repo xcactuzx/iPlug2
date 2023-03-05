@@ -79,7 +79,7 @@ bool IPlugAPP::SendMidiMsg(const IMidiMsg& msg)
 //    uint8_t status;
 //
 //    // if the midi channel out filter is set, reassign the status byte appropriately
-//    if(mAppHost->mMidiOutChannel > -1)
+//    if (mAppHost->mMidiOutChannel > -1)
 //      status = mAppHost->mMidiOutChannel-1 | ((uint8_t) msg.StatusMsg() << 4) ;
 
     std::vector<uint8_t> message;
@@ -126,7 +126,7 @@ void IPlugAPP::AppProcess(double** inputs, double** outputs, int nFrames)
   AttachBuffers(ERoute::kInput, 0, NChannelsConnected(ERoute::kInput), inputs, GetBlockSize());
   AttachBuffers(ERoute::kOutput, 0, NChannelsConnected(ERoute::kOutput), outputs, GetBlockSize());
   
-  if(mMidiMsgsFromCallback.ElementsAvailable())
+  if (mMidiMsgsFromCallback.ElementsAvailable())
   {
     IMidiMsg msg;
     
@@ -137,7 +137,7 @@ void IPlugAPP::AppProcess(double** inputs, double** outputs, int nFrames)
     }
   }
   
-  if(mSysExMsgsFromCallback.ElementsAvailable())
+  if (mSysExMsgsFromCallback.ElementsAvailable())
   {
     SysExData data;
     
@@ -149,7 +149,7 @@ void IPlugAPP::AppProcess(double** inputs, double** outputs, int nFrames)
     }
   }
   
-  if(mMidiMsgsFromEditor.ElementsAvailable())
+  if (mMidiMsgsFromEditor.ElementsAvailable())
   {
     IMidiMsg msg;
 
