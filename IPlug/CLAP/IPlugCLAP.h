@@ -219,7 +219,7 @@ private:
   
   // IPlug2-style host retrieval
   
-  ClapHost GetClapHost() { return _host; }
+  ClapHost& GetClapHost() { return _host; }
   
   // IPlug Config Helpers
   
