@@ -29,7 +29,7 @@
 <div class="line">  <span class="comment">// a simple buffer copy operation here.</span></div>
 <div class="line">  <span class="keywordflow">if</span> ( status ) std::cout &lt;&lt; <span class="stringliteral">&quot;Stream over/underflow detected.&quot;</span> &lt;&lt; std::endl;</div>
 <div class="line"></div>
-<div class="line">  <span class="keywordtype">unsigned</span> <span class="keywordtype">long</span> *bytes = (<span class="keywordtype">unsigned</span> <span class="keywordtype">long</span> *) data;</div>
+<div class="line">  <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> *bytes = (<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> *) data;</div>
 <div class="line">  memcpy( outputBuffer, inputBuffer, *bytes );</div>
 <div class="line">  <span class="keywordflow">return</span> 0;</div>
 <div class="line">}</div>
@@ -44,11 +44,11 @@
 <div class="line"></div>
 <div class="line">  <span class="comment">// Set the same number of channels for both input and output.</span></div>
 <div class="line">  <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> bufferBytes, bufferFrames = 512;</div>
-<div class="line">  <a class="code" href="structRtAudio_1_1StreamParameters.html" title="The structure for specifying input or ouput stream parameters.">RtAudio::StreamParameters</a> iParams, oParams;</div>
-<div class="line">  iParams.<a class="code" href="structRtAudio_1_1StreamParameters.html#ab3c72bcf3ef12149ae9a4fb597cc5489">deviceId</a> = 0; <span class="comment">// first available device</span></div>
-<div class="line">  iParams.<a class="code" href="structRtAudio_1_1StreamParameters.html#a88a10091b6e284e21235cc6f25332ebd">nChannels</a> = 2;</div>
-<div class="line">  oParams.<a class="code" href="structRtAudio_1_1StreamParameters.html#ab3c72bcf3ef12149ae9a4fb597cc5489">deviceId</a> = 0; <span class="comment">// first available device</span></div>
-<div class="line">  oParams.<a class="code" href="structRtAudio_1_1StreamParameters.html#a88a10091b6e284e21235cc6f25332ebd">nChannels</a> = 2;</div>
+<div class="line">  <a class="code" href="classRtAudio.html#structRtAudio_1_1StreamParameters" title="The structure for specifying input or output stream parameters.">RtAudio::StreamParameters</a> iParams, oParams;</div>
+<div class="line">  iParams.<a class="code" href="classRtAudio.html#ab3c72bcf3ef12149ae9a4fb597cc5489">deviceId</a> = 0; <span class="comment">// first available device</span></div>
+<div class="line">  iParams.<a class="code" href="classRtAudio.html#a88a10091b6e284e21235cc6f25332ebd">nChannels</a> = 2;</div>
+<div class="line">  oParams.<a class="code" href="classRtAudio.html#ab3c72bcf3ef12149ae9a4fb597cc5489">deviceId</a> = 0; <span class="comment">// first available device</span></div>
+<div class="line">  oParams.<a class="code" href="classRtAudio.html#a88a10091b6e284e21235cc6f25332ebd">nChannels</a> = 2;</div>
 <div class="line"></div>
 <div class="line">  <span class="keywordflow">try</span> {</div>
 <div class="line">    adac.<a class="code" href="classRtAudio.html#a6907539d2527775df778ebce32ef1e3b" title="A public function for opening a stream with the specified parameters.">openStream</a>( &amp;oParams, &amp;iParams, RTAUDIO_SINT32, 44100, &amp;bufferFrames, &amp;inout, (<span class="keywordtype">void</span> *)&amp;bufferBytes );</div>
@@ -85,7 +85,7 @@
 </div></div><!-- contents -->
 <HR>
 <table><tr><td><img src="../images/mcgill.gif" width=165></td>
-  <td>&copy;2001-2019 Gary P. Scavone, McGill University. All Rights Reserved.<br>Maintained by <a href="http://www.music.mcgill.ca/~gary/">Gary P. Scavone</a>.</td></tr>
+  <td>&copy;2001-2021 Gary P. Scavone, McGill University. All Rights Reserved.<br>Maintained by <a href="http://www.music.mcgill.ca/~gary/">Gary P. Scavone</a>.</td></tr>
 </table>
 </BODY>
 </HTML>

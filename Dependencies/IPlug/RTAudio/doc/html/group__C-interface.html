@@ -61,17 +61,18 @@ Typedefs</h2></td></tr>
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="enum-members"></a>
 Enumerations</h2></td></tr>
 <tr class="memitem:ga759c048034154046970a38480710088a"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__C-interface.html#ga759c048034154046970a38480710088a">rtaudio_error_t</a> { <br/>
-&#160;&#160;<a class="el" href="group__C-interface.html#gga759c048034154046970a38480710088aa697f28648fbadc0171475d02480d8aae">RTAUDIO_ERROR_WARNING</a>, 
+&#160;&#160;<a class="el" href="group__C-interface.html#gga759c048034154046970a38480710088aa2e502330ccb08634bad22a500d238c55">RTAUDIO_NO_ERROR</a> = -1, 
+<a class="el" href="group__C-interface.html#gga759c048034154046970a38480710088aa697f28648fbadc0171475d02480d8aae">RTAUDIO_ERROR_WARNING</a>, 
 <a class="el" href="group__C-interface.html#gga759c048034154046970a38480710088aa2cd3e22164780e12a06b9cfec4301146">RTAUDIO_ERROR_DEBUG_WARNING</a>, 
 <a class="el" href="group__C-interface.html#gga759c048034154046970a38480710088aacbff947eb35674efdd2a8349f4795159">RTAUDIO_ERROR_UNSPECIFIED</a>, 
-<a class="el" href="group__C-interface.html#gga759c048034154046970a38480710088aa953569aa743c7e0c39375cd04a6836db">RTAUDIO_ERROR_NO_DEVICES_FOUND</a>, 
 <br/>
-&#160;&#160;<a class="el" href="group__C-interface.html#gga759c048034154046970a38480710088aa71b7beddb4ff61e48f533af8a116e133">RTAUDIO_ERROR_INVALID_DEVICE</a>, 
+&#160;&#160;<a class="el" href="group__C-interface.html#gga759c048034154046970a38480710088aa953569aa743c7e0c39375cd04a6836db">RTAUDIO_ERROR_NO_DEVICES_FOUND</a>, 
+<a class="el" href="group__C-interface.html#gga759c048034154046970a38480710088aa71b7beddb4ff61e48f533af8a116e133">RTAUDIO_ERROR_INVALID_DEVICE</a>, 
 <a class="el" href="group__C-interface.html#gga759c048034154046970a38480710088aa456aef88d3c8c90f8d4a90cd9567edc3">RTAUDIO_ERROR_MEMORY_ERROR</a>, 
 <a class="el" href="group__C-interface.html#gga759c048034154046970a38480710088aa5e2f92a0af3084647650bdff8a92aa6f">RTAUDIO_ERROR_INVALID_PARAMETER</a>, 
-<a class="el" href="group__C-interface.html#gga759c048034154046970a38480710088aa0d6d301c35ee4fb4408eb8c9c0f5bf85">RTAUDIO_ERROR_INVALID_USE</a>, 
 <br/>
-&#160;&#160;<a class="el" href="group__C-interface.html#gga759c048034154046970a38480710088aab5a7b5d261dbb6ac6ebca2856ebaeb43">RTAUDIO_ERROR_DRIVER_ERROR</a>, 
+&#160;&#160;<a class="el" href="group__C-interface.html#gga759c048034154046970a38480710088aa0d6d301c35ee4fb4408eb8c9c0f5bf85">RTAUDIO_ERROR_INVALID_USE</a>, 
+<a class="el" href="group__C-interface.html#gga759c048034154046970a38480710088aab5a7b5d261dbb6ac6ebca2856ebaeb43">RTAUDIO_ERROR_DRIVER_ERROR</a>, 
 <a class="el" href="group__C-interface.html#gga759c048034154046970a38480710088aabb4ffa55ed1db42ece7294b3efcde3cb">RTAUDIO_ERROR_SYSTEM_ERROR</a>, 
 <a class="el" href="group__C-interface.html#gga759c048034154046970a38480710088aa5fc71ac7cd30cd34cb2933aff646b8b7">RTAUDIO_ERROR_THREAD_ERROR</a>
 <br/>
@@ -175,7 +176,7 @@ RTAUDIOAPI int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" 
         </tr>
       </table>
 </div><div class="memdoc">
-<div class="textblock"><p>The public device information structure for returning queried values. See <a class="el" href="structRtAudio_1_1DeviceInfo.html">RtAudio::DeviceInfo</a>. </p>
+<div class="textblock"><p>The public device information structure for returning queried values. See <a class="el" href="classRtAudio.html#structRtAudio_1_1DeviceInfo">RtAudio::DeviceInfo</a>. </p>
 </div>
 </div>
 </div>
@@ -188,7 +189,7 @@ RTAUDIOAPI int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" 
         </tr>
       </table>
 </div><div class="memdoc">
-<div class="textblock"><p>The structure for specifying input or ouput stream parameters. See <a class="el" href="structRtAudio_1_1StreamParameters.html">RtAudio::StreamParameters</a>. </p>
+<div class="textblock"><p>The structure for specifying input or output stream parameters. See <a class="el" href="classRtAudio.html#structRtAudio_1_1StreamParameters">RtAudio::StreamParameters</a>. </p>
 </div>
 </div>
 </div>
@@ -201,7 +202,7 @@ RTAUDIOAPI int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" 
         </tr>
       </table>
 </div><div class="memdoc">
-<div class="textblock"><p>The structure for specifying stream options. See <a class="el" href="structRtAudio_1_1StreamOptions.html">RtAudio::StreamOptions</a>. </p>
+<div class="textblock"><p>The structure for specifying stream options. See <a class="el" href="classRtAudio.html#structRtAudio_1_1StreamOptions">RtAudio::StreamOptions</a>. </p>
 </div>
 </div>
 </div>
@@ -324,7 +325,10 @@ RTAUDIOAPI int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" 
 <p>Error codes for <a class="el" href="classRtAudio.html" title="Realtime audio i/o C++ classes.">RtAudio</a>. </p>
 <p>See <a class="el" href="classRtAudioError.html">RtAudioError</a>. </p>
 <table class="fieldtable">
-<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><em><a class="anchor" id="gga759c048034154046970a38480710088aa697f28648fbadc0171475d02480d8aae"></a>RTAUDIO_ERROR_WARNING</em>&nbsp;</td><td class="fielddoc">
+<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><em><a class="anchor" id="gga759c048034154046970a38480710088aa2e502330ccb08634bad22a500d238c55"></a>RTAUDIO_NO_ERROR</em>&nbsp;</td><td class="fielddoc">
+<p>No error. </p>
+</td></tr>
+<tr><td class="fieldname"><em><a class="anchor" id="gga759c048034154046970a38480710088aa697f28648fbadc0171475d02480d8aae"></a>RTAUDIO_ERROR_WARNING</em>&nbsp;</td><td class="fielddoc">
 <p>A non-critical error. </p>
 </td></tr>
 <tr><td class="fieldname"><em><a class="anchor" id="gga759c048034154046970a38480710088aa2cd3e22164780e12a06b9cfec4301146"></a>RTAUDIO_ERROR_DEBUG_WARNING</em>&nbsp;</td><td class="fielddoc">
@@ -340,7 +344,7 @@ RTAUDIOAPI int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" 
 <p>An invalid device ID was specified. </p>
 </td></tr>
 <tr><td class="fieldname"><em><a class="anchor" id="gga759c048034154046970a38480710088aa456aef88d3c8c90f8d4a90cd9567edc3"></a>RTAUDIO_ERROR_MEMORY_ERROR</em>&nbsp;</td><td class="fielddoc">
-<p>An error occured during memory allocation. </p>
+<p>An error occurred during memory allocation. </p>
 </td></tr>
 <tr><td class="fieldname"><em><a class="anchor" id="gga759c048034154046970a38480710088aa5e2f92a0af3084647650bdff8a92aa6f"></a>RTAUDIO_ERROR_INVALID_PARAMETER</em>&nbsp;</td><td class="fielddoc">
 <p>An invalid parameter was specified to a function. </p>
@@ -349,13 +353,13 @@ RTAUDIOAPI int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" 
 <p>The function was called incorrectly. </p>
 </td></tr>
 <tr><td class="fieldname"><em><a class="anchor" id="gga759c048034154046970a38480710088aab5a7b5d261dbb6ac6ebca2856ebaeb43"></a>RTAUDIO_ERROR_DRIVER_ERROR</em>&nbsp;</td><td class="fielddoc">
-<p>A system driver error occured. </p>
+<p>A system driver error occurred. </p>
 </td></tr>
 <tr><td class="fieldname"><em><a class="anchor" id="gga759c048034154046970a38480710088aabb4ffa55ed1db42ece7294b3efcde3cb"></a>RTAUDIO_ERROR_SYSTEM_ERROR</em>&nbsp;</td><td class="fielddoc">
-<p>A system error occured. </p>
+<p>A system error occurred. </p>
 </td></tr>
 <tr><td class="fieldname"><em><a class="anchor" id="gga759c048034154046970a38480710088aa5fc71ac7cd30cd34cb2933aff646b8b7"></a>RTAUDIO_ERROR_THREAD_ERROR</em>&nbsp;</td><td class="fielddoc">
-<p>A thread error occured. </p>
+<p>A thread error occurred. </p>
 </td></tr>
 </table>
 
@@ -826,7 +830,7 @@ RTAUDIOAPI int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" 
 </div><!-- contents -->
 <HR>
 <table><tr><td><img src="../images/mcgill.gif" width=165></td>
-  <td>&copy;2001-2019 Gary P. Scavone, McGill University. All Rights Reserved.<br>Maintained by <a href="http://www.music.mcgill.ca/~gary/">Gary P. Scavone</a>.</td></tr>
+  <td>&copy;2001-2021 Gary P. Scavone, McGill University. All Rights Reserved.<br>Maintained by <a href="http://www.music.mcgill.ca/~gary/">Gary P. Scavone</a>.</td></tr>
 </table>
 </BODY>
 </HTML>
