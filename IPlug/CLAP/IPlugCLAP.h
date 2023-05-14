@@ -237,7 +237,7 @@ private:
   WDL_TypedBuf<double *> mAudioIO64;
   int mConfigIdx = 0;
   bool mTailUpdate = false;
-  bool mLatencyUpdate = true;
+  bool mLatencyUpdate = false;
 };
 
 IPlugCLAP* MakePlug(const InstanceInfo& info);

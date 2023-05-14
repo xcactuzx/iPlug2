@@ -117,11 +117,11 @@ void IPlugCLAP::SetLatency(int samples)
     if (isActive())
     {
       mLatencyUpdate = true;
-      runOnMainThread([&](){ GetClapHost().requestRestart(); });
+      runOnMainThread([&](){ if (!isBeingDestroyed()) GetClapHost().requestRestart(); });
     }
     else
     {
-      GetClapHost().latencyChanged();
+      runOnMainThread([&](){ if (!isBeingDestroyed()) GetClapHost().latencyChanged(); });
     }
   }
 }
@@ -155,20 +155,20 @@ bool IPlugCLAP::activate(double sampleRate, uint32_t minFrameCount, uint32_t max
   OnParamReset(kReset);
   OnReset();
 
-  return true;
-}
-
-void IPlugCLAP::deactivate() noexcept
-{
-  OnActivate(false);
-  
-  // TODO - check that this is correct
+  // TODO - check that this is correct / needed
   
   if (mLatencyUpdate)
   {
     GetClapHost().latencyChanged();
     mLatencyUpdate = false;
   }
+  
+  return true;
+}
+
+void IPlugCLAP::deactivate() noexcept
+{
+  OnActivate(false);
 
   // TODO - should we clear mTailUpdate here or elsewhere?
 }
