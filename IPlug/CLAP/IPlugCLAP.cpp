@@ -155,20 +155,20 @@ bool IPlugCLAP::activate(double sampleRate, uint32_t minFrameCount, uint32_t max
   OnParamReset(kReset);
   OnReset();
 
-  // TODO - check that this is correct / needed
-  
-  if (mLatencyUpdate)
-  {
-    GetClapHost().latencyChanged();
-    mLatencyUpdate = false;
-  }
-  
   return true;
 }
 
 void IPlugCLAP::deactivate() noexcept
 {
   OnActivate(false);
+  
+  // N.B. - It should be correct to call this here to ensure the latency is updated
+  
+  if (mLatencyUpdate)
+  {
+    GetClapHost().latencyChanged();
+    mLatencyUpdate = false;
+  }
 
   // TODO - should we clear mTailUpdate here or elsewhere?
 }
